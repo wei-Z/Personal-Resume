@@ -625,10 +625,11 @@
             <!-- Close -->
             <a href="#" class="messenger-close icon icon-hover icon-xs icon-circle icon-white" data-target="messenger"><i class="fa fa-times"></i></a>
             <!-- Avatar -->
-            <img src="assets/img/photos/it-avatar-96x96.jpg" alt="..." class="img-circle margin-b-30">
+            <img src="assets/img/photos/wei.png" alt="..." class="img-circle margin-b-30">
             <h3>Please fill the <strong>form</strong> - I will response as fast as I can!</h3>
             <!-- Contact Form -->
-            <form id="contact-form">
+            <form id="contactform" action="https://formspree.io/amweizhang@gmail.com"
+      method="POST">
                 <div class="form-alert"></div>
                 <div class="form-error alert alert-default"><ul></ul></div>
                 <div class="form-group">
@@ -637,14 +638,23 @@
                 </div>
                 <div class="form-group">
                     <label>Addres e-mail:</label>
-                    <input id="email" class="form-control" type="text" name="email">
+                    <input id="email" class="form-control" type="email" name="_replyto">
                 </div>
                 <div class="form-group">
                     <label>Message:</label>
-                    <textarea id="message" class="form-control" name="message" rows="4"></textarea>
+                    <textarea id="message" class="form-control" name="message" rows="10"></textarea>
                 </div>
-                <button type="submit" class="btn btn-secondary"><span>Send a message!</span><i class="ti-email"></i></button>
+                <input type="submit" class="btn btn-secondary" value="Send a message!">
+                <!-- <button type="submit"  value="Send"><span>Send a message!</span><i class="ti-email"></i></button> -->
             </form>
+            <!-- <form id="contactform" action="https://formspree.io/amweizhang@gmail.com" method="POST">
+                <input type="text" name="name" placeholder="Your name">
+                <input type="email" name="_replyto" placeholder="Your email">
+                <input type="hidden" name="_subject" value="Website contact" />
+                <textarea name="message" placeholder="Your message"></textarea>
+                <input type="text" name="_gotcha" style="display:none" />
+                <input type="submit" value="Send">
+            </form> -->
         </div>
     </div>
 </div>
