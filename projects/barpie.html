@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <style>
+          /*CSS for D3 barpie*/
+          barpie{
+            width:98%;
+            margin:1rem auto;
+          }
+          .top-row {
+            margin: auto 5rem;
+          }
+
+          path:hover {  opacity:0.9; }
+          // rect:hover {  opacity:0.7; }
+
+          .axis path,
+          .axis line {
+            fill: none;
+            stroke: #FFFFFF;
+            shape-rendering: crispEdges;
+          }
+
+          .x.axis path {  display: none; }
+          .pC {
+            margin-left: 25%;
+          }
+          .legend{
+            margin-top:1rem;
+            margin-bottom:2rem;
+            display:inline-block;
+            border-collapse: collapse;
+            border-spacing: 0rem;
+            position: relative;
+            bottom: 0rem;
+            margin-left: 46.5rem;
+          }
+          .legend td{
+            padding:0.5rem 0.3rem;
+            /*vertical-align:bottom;*/
+            font-size: 0.5vw;
+          }
+          .legendFreq, .legendPerc{
+            align:right;
+            width:2rem;
+
+          }
+
+          .grid  {
+            stroke: #FFFFFF;
+            opacity: 0.2;
+            stroke-width:1;
+          }
+
+          .tick text{
+              font: Roboto;
+              font-size: 0.8vw;
+              color: #FFFFFF;
+            }
+
+          .tick line {
+            opacity:0.2;
+          }
+          /* make axis transparent */
+          .x.axis path, .y.axis path {
+            stroke-width: 1; /* for axis lines */
+            opacity:0.2
+          }
+
+          /* show x axis path */
+          .x.axis path {
+              display: inline;
+          }
+
+
+
+        </style>
+    </head>
+    <body>
+      
+        <!-- <script src="http://d3js.org/d3.v3.min.js"></script> -->
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.17/d3.js"></script>
+         <div class="data-viz-container" style="width: 1000px;height:1000px; background: #80CCFF; margin-right:auto; margin-left: auto">
+         <form>
+          <label><input type="radio" name="mode" value="grouped" id= 'topInput'> Grouped</label>
+          <label><input type="radio" name="mode" value="stacked" checked> Stacked</label>
+        </form>
+         <div id='dashboard' style="width: 1000px;height:1000px;"></div>
+        </div>
+        <script type="text/javascript" charset="utf-8">
+
+      // function dashboard(id, fData) {
+          id = '#dashboard';
+
+          fData = 
+                [[{x:'Alaska', y: 55, y0:0}, {x:'California', y: 20, y0:0}, {x:'District of Columbia', y: 10, y0:0}, {x:'Illinois', y: 1, y0:0}, {x:'New York', y: 25, y0:0},
+                  {x:'North Dakota', y: 40, y0:0}, {x:'South Dakota', y: 5, y0:0}],
+                 [{x:'Alaska', y: 14, y0:55}, {x:'California', y: 30, y0:20},  {x:'District of Columbia', y: 10, y0:10},{x:'Illinois', y: 1, y0:0}, {x:'New York', y: 24, y0:25}, {x:'North Dakota', y: 7, y0:40}, {x:'South Dakota', y: 3, y0:5}],
+                 [{x:'Alaska', y: 9, y0:69}, {x:'California', y: 25, y0:50},  {x:'District of Columbia', y: 10, y0:20}, {x:'Illinois', y: 2, y0:2}, {x:'New York', y: 23, y0:49}, {x:'North Dakota', y: 13, y0:47}, {x:'South Dakota', y: 4, y0:8}]
+                 ];
+          var labelColor = '#FFFFFF';
+          var n = 3; // number of catagories
+          var m = fData[0].length; // number of x Axis labels
+          var regions = []; // used for x domain
+          for (i =0 ; i<m; i++) {
+            regions.push(fData[0][i].x);
+          }
+
+          // Prepare data to be used in Stacked and Grouped barchart
+          var stack = d3.layout.stack(), layers = stack(fData),
+          yGroupMax = d3.max(layers, function (layer) { return d3.max(layer, function (d) {return d.y; })}),
+          yStackMax = d3.max(layers, function (layer) { return d3.max(layer, function (d) {return d.y0 + d.y; })});
+       
+          // Draw d3 based on current window size       
+          resize();
+
+          // when window size changed, redraw d3
+          d3.select(window).on("resize", resize);
+
+          function resize() {
+              //clear old dashboard elements if there are any
+              if (document.getElementById('dashboard') != null) {
+               var contents = document.getElementById('dashboard').innerHTML;
+             } else {
+               return;
+             }
+              if (contents) {
+                document.getElementById('dashboard').innerHTML = '';}
+
+              // set up margins and dimensions
+              var hGDim = {t: 60, r: 50, b: 100, l: 80};
+              hGDim.w = parseInt(d3.select('.data-viz-container').style('width'), 10)*0.95 - hGDim.l - hGDim.r, 
+              hGDim.h = parseInt(d3.select('.data-viz-container').style('height'), 10)*0.65 - hGDim.t - hGDim.b;
+
+              console.log(hGDim.w, hGDim.h);
+
+              // create x y scales
+              var x = d3.scale.ordinal()
+                              .domain(regions)
+                              .rangeRoundBands([0, hGDim.w], 0.3);
+
+              var y = d3.scale.linear()
+                              .domain([0, yStackMax])
+                              .range([hGDim.h, 0]);
+
+              // set up colors
+              var color = d3.scale.ordinal()
+                                     .range(["#ff7373", "#fdb813", "#e1cccc"]);
+
+              // set up x Axis
+              var xAxis = d3.svg.axis()
+                                      .scale(x)
+                                      .tickSize(5)
+                                      .tickPadding(6)
+                                      .orient('bottom');
+
+              // set up viz width, height and start point   
+              console.log()                
+              var svg = d3.select('#dashboard').append('svg')
+                                  .attr('id', "svgplot")
+                                  .attr("width", hGDim.w + hGDim.l + hGDim.r)
+                                  .attr("height", hGDim.h + hGDim.t + hGDim.b)
+                                  .append('g')
+                                  .attr('transform', 'translate(' + hGDim.l + ', ' + hGDim.t + ')');
+
+              // create layer for each category and assign color
+              var layer = svg.selectAll('.layer')
+                                      .data(layers)
+                                      .enter()
+                                      .append('g')
+                                      .attr('class', 'layer')
+                                      .style('fill', function (d, i) { return color(i); });
+
+              // create a variable for bar width
+              var ColumnWidth = Math.min(x.rangeBand(),  parseInt(d3.select('.data-viz-container').style('width'), 10)/77*3);
+
+              // variance is for later adjustment
+              var variance = (x.rangeBand() - ColumnWidth)/2;
+
+              //append rect for each layer
+              var rect = layer.selectAll('rect')
+                                       .data(function (d) { return d;})
+                                       .enter()
+                                       .append('rect')
+                                       .attr('x', function (d) { return x(d.x) + variance; })
+                                       .attr('y', hGDim.h)
+                                       .attr('width', ColumnWidth) // x.rangeBand()
+                                       .attr("rx", ColumnWidth/7)
+                                       .attr("ry", ColumnWidth/7)
+                                       .attr('height', 0)
+                                       .style('cursor', 'pointer');
+
+              // rect transition
+              rect.transition()
+                    .delay(function (d, i) { return i *10; })
+                    .attr('y', function (d) { return y(d.y0 + d.y); })
+                    .attr('height', function (d) { return y(d.y0) - y(d.y0 + d.y); });
+
+              // add text labels for Stacked Bars          
+              var text = layer.selectAll('text')
+                                       .data(function (d) { return d;})
+                                       .enter()
+                                       .append('text')
+                                       .attr('fill', labelColor)
+                                       .attr('class', 'StackText')
+                                       .attr('x', function (d) { return x(d.x) + x.rangeBand()/2 ; })
+                                       .attr('y', function (d) { return y(d.y0 + d.y) + (y(d.y0)-y(d.y0 + d.y))/2 ; })
+                                       .attr("dy", ".35em")
+                                       .attr('text-anchor', 'middle')
+                                       .transition().delay(function (d,i){ return 300;})
+                                       .duration(800)
+                                       .text(function (d) { if (d.y == 0) return ''; return d.y; })
+                                       .style('font-size',function (d) { return Math.min(20, y(d.y0) - y(d.y0 + d.y), ColumnWidth) + 'px'; });
+
+              // add x axis and labels
+              svg.append('g')
+                    .attr('class', "x axis")
+                    .attr('transform', 'translate(0, ' + hGDim.h  + ')')
+                    .attr("fill", labelColor)
+                    .call(xAxis)
+                    .selectAll("text")                                                    
+                    .style("text-anchor", "start")               // rotate based on start point of the text
+                    .attr("transform", "rotate(30 -10, 0)");  // rotate x-axis labels
+                    // .style("text-transform", "uppercase"); // transfrom text labels to uppercase
+
+              // add y axis labels
+              // find 
+              var spacing = parseInt(d3.select('#topInput').style('font-size'), 10)/10*9;
+
+              svg.append('text')
+                    .attr('transform', 'rotate(-90)')
+                    .each (function (d) {
+                      var yAxisText = ['* Fish Caught Count', '(Includes Jump on Boat)'];
+                      for (i =0; i <yAxisText.length; i++) {
+                        d3.select(this).append('tspan')
+                            .text(yAxisText[i])
+                            .attr('class', 'yAxisText')             
+                            .attr('x', -hGDim.h /2.1)
+                            .attr('y', Math.max(-hGDim.w/19, -hGDim.l) + spacing*i)
+                            .attr('dy', '.71em')
+                            .style('text-anchor', 'middle')
+                            .style('font-size', .8 - i/10 + 'vw')
+                            .attr('fill', labelColor)
+                      }
+                    });
+                 
+              // change when click Grouped or Stacked
+              d3.selectAll("input").on("change", change);
+
+              // Stacked switched Grouped after 1.2s
+              var timeout = setTimeout(function() {
+                d3.select("input[value=\"grouped\"]").property("checked", true).each(change);
+                // transitionGrouped();
+              }, 1200);
+             
+              // function for : switch between Grouped and Stacked
+              function change() {
+                clearTimeout(timeout);
+                if (this.value === "grouped") transitionGrouped();
+                else transitionStacked();
+              }
+
+              // when click Grouped, switch to Grouped barchart
+              function transitionGrouped() {
+                // redo y axis domain based on grouped data
+                y.domain([0, yGroupMax]);
+
+                // remove Stacked text labels
+                layer.selectAll('.StackText').remove();
+
+                // rect transition to change to Grouped
+                rect.transition()
+                      .duration(500)
+                      .delay(function (d, i) { return i * 10; })
+                      .attr('x', function (d, i, j) { return x(d.x) + ColumnWidth / n * j + variance; })
+                      .attr('width', ColumnWidth / n  ) //x.rangeBand() / n
+                      .transition()
+                      .attr('y', function (d) { return y(d.y); })
+                      .attr('height', function (d) { return hGDim.h - y(d.y); });
+
+                // add text labels for Grouped bar chart
+                layer.selectAll('text')
+                       .data(function (d) { return d;})
+                       .enter()
+                       .append('text')
+                       .attr('fill', labelColor)
+                       .attr('class', 'GroupText')
+                       .attr('x', function (d, i, j) { return x(d.x) + (ColumnWidth ) / n * j +(ColumnWidth )/n /2 + variance; })
+                       .attr('y', function (d) { return y(d.y) - Math.min(20, x.rangeBand() / n ) /2; })
+                       .attr("dy", ".35em")
+                       .attr('text-anchor', 'middle')
+                       .transition().delay(function (d,i) { return 300;})
+                       .duration(800)
+                       .text(function (d) { if (d.y == 0) return ''; return d.y; })
+                       .style('font-size', function (d) { return Math.min(20, ColumnWidth / n )+ 'px'; });
+
+              }
+
+              // when click Stacked, switch to Stacked bar chart
+              function transitionStacked() {
+
+                // redo y axis domain based on stacked data
+                y.domain([0, yStackMax]);
+
+                // remove Grouped text labels
+                layer.selectAll('.GroupText').remove();
+
+                // rect transition to change to Stacked
+                rect.transition()
+                      .duration(500)
+                      .delay(function (d, i) { return i *10; })
+                      .attr('y', function (d) { return y(d.y0 + d.y); })
+                      .attr('height', function (d) { return y(d.y0) - y(d.y0 + d.y); })
+                      .transition()
+                      .attr('x', function (d) { return x(d.x) + variance; })
+                      .attr('width', ColumnWidth); //x.rangeBand()
+
+                // add text labels for Stacked bar chart
+                layer.selectAll('text')
+                       .data(function (d) { return d;})
+                       .enter()
+                       .append('text')
+                       .attr('fill', labelColor)
+                       .attr('class', 'StackText')
+                       .attr('x', function (d) { return x(d.x) + x.rangeBand()/2 ; })
+                       .attr('y', function (d) { return y(d.y0 + d.y) + (y(d.y0)-y(d.y0 + d.y))/2 ; })
+                       .attr("dy", ".22em")
+                       .attr('text-anchor', 'middle')
+                       .transition().delay(function (d,i){ return 300;})
+                       .duration(800)
+                       .text(function (d) { if (d.y == 0) return ''; return d.y; })
+                       .style('font-size',function (d) { return Math.min(20, y(d.y0) - y(d.y0 + d.y)) * 0.95; });
+
+              }
+              
+
+              var legendRectSize = 18;
+              var legendSpacing = 4;
+
+              var legend = svg.selectAll('.legend')
+                              .data(color.domain())
+                              .enter()
+                              .append('g')
+                              .attr('class', 'legend')
+                              .attr('transform', function(d, i) {
+                                var height = legendRectSize + legendSpacing;
+                                var offset =  height * color.domain().length / 2;
+                                var horz = hGDim.w -2 * legendRectSize;
+                                var vert = i * height - offset;
+                                return 'translate(' + horz + ',' + vert + ')';
+                              });
+
+
+              legend.append('rect')
+                    .attr('width', legendRectSize)
+                    .attr('height', legendRectSize)
+                    .style('fill', color)
+                    .style('stroke', color);
+
+
+              legendText = ['Bass', 'Catfish', 'Cod']
+              legend.append('text')
+                    .attr('x', legendRectSize + legendSpacing)
+                    .attr('y', legendRectSize - legendSpacing)
+                    .text(function(d, i) { return legendText[i]; });
+
+               
+            }// end of resize function      
+
+      // } // end of dashboard
+
+      // dashboard();
+
+
+
+
+            
+        </script>
+       
+    </body>
+</html>
+

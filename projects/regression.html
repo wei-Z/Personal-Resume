@@ -1,0 +1,645 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <style>
+
+            svg {
+                margin-left: auto; margin-right: auto;
+                display: block;
+            }
+
+        </style>
+    </head>
+    <body>
+        <script type="text/javascript" src="d3.js"></script>
+         <div class="chart" style="background: #F9F9F9">
+        </div>
+        <script type="text/javascript"charset="utf-8">
+
+            // Settings
+            var width = 550,
+                height = 400,
+                padding = 30;
+
+            var margin = {
+                'top': 60,
+                'right': 140,
+                'bottom': 50,
+                'left': 80
+            };
+
+            margin.hor = margin.left + margin.right;
+            margin.ver = margin.top + margin.bottom;
+
+
+            var interpolation = "linear";
+
+
+            var coalitionLeftColor = "#D7191C", // blue
+
+                displaySingleCoalition = 'left';
+                // false, "left", "right"
+
+            var useCoalitionLabels = true,
+                yAxisTitle = "Y Axis",
+                cutoff = 50;
+
+
+            var x = d3.time.scale()
+                .range([20, width-20]);
+
+            var y = d3.scale.linear()
+                .range([height, 0]);
+
+            var xAxis = d3.svg.axis()
+                .scale(x)
+                .orient("bottom")
+                // .ticks(14)
+                .innerTickSize(-height)
+                .outerTickSize(0)
+                .tickFormat("");
+             
+
+            var yAxis = d3.svg.axis()
+                .scale(y)
+                .orient("left")
+                // .ticks(20)
+                .innerTickSize(-width-20)
+                .outerTickSize(0)
+                .tickFormat("");
+               
+
+            var lineLeft = d3.svg.area()
+                .interpolate("linear")
+                .x(function(d) { return x(d["Month"]);})
+                .y(function(d) { return y(d["Predicted"]);});
+
+                // console.log(data);
+
+
+            var confidenceAreaLeft = d3.svg.area()
+                .interpolate(interpolation)
+                .x(function(d) { return x(d["Month"]); })
+                .y0(function(d) {
+                    return y(d["Lower"]+d["Predicted"]);})
+                .y1(function(d) {
+                    return y(d["Upper"]+d["Predicted"]);});
+
+
+            var svg = d3.select(".chart").append("svg")
+                .attr({
+                    "width": width + margin.left + margin.right,
+                    "height": height + margin.top + margin.bottom
+                })
+                .append("g").attr("id", "audi")
+                .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+                svg.append( 'text' )
+                 .attr( 'transform', 'rotate(-90)' )
+                 .each ( function( d ) {
+                      var yAxisText = ['Y Axis']; //if there are two or more lines
+                      for( var i = 0; i < yAxisText.length; i++ ) {
+                        d3.select( this ).append( 'tspan' )
+                          .text( yAxisText[i] )
+                          .attr( 'class', 'yAxisText' )
+                          .attr( 'x', -height/2.1 )
+                          .attr( 'y', Math.max( -width/19, -margin.left )) //+ spacing*i
+                          .attr( 'dy', '.71em' )
+                          .style( 'text-anchor', 'middle' )
+                          .style( 'font-size', "11px" )
+                          .style("fill", "65666A")
+                          .style('font-family', "Roboto");
+                          // .attr( 'fill', labelColor );
+                      }
+                  });
+            svg.append("text")
+                .text("HOW TO DRAW CONFIDENCE INTERVAL")
+                .attr("transform", "translate(" + 0 + "," + (-28) + ")")
+                .style( 'font-size', "20px" )
+                .style("fill", "9B9B9B")
+                .style('font-family', "Open Sans");
+
+
+var data = [{Month:"9/16/2015",Actual:47519.27834,Predicted:47519.27834,Lower:0,Upper:0,Img:"Up"},
+{Month:"10/1/2015",Actual:151584.5836,Predicted:151584.5836,Lower:0,Upper:0,Img:"Down"},
+{Month:"11/1/2015",Actual:245327.2938,Predicted:245327.2938,Lower:0,Upper:0,Img:"Equal"},
+{Month:"12/1/2015",Actual:338760.7679,Predicted:338760.7679,Lower:0,Upper:0,Img:"Up"},
+{Month:"1/1/2016",Actual:407146.1192,Predicted:407146.1192,Lower:0,Upper:0,Img:"Down"},
+{Month:"2/1/2016",Actual:480052.2076,Predicted:480052.2076,Lower:0,Upper:0,Img:"Equal"},
+{Month:"3/1/2016",Actual:568464.2767,Predicted:568464.2767,Lower:0,Upper:0,Img:"Up"},
+{Month:"4/1/2016",Actual:647893.7739,Predicted:647893.7739,Lower:0,Upper:0,Img:"Down"},
+{Month:"5/1/2016",Actual:729988.5916,Predicted:729988.5916,Lower:0,Upper:0,Img:"Equal"},
+{Month:"6/1/2016",Actual:810522.5033,Predicted:810522.5033,Lower:0,Upper:0,Img:"Up"},
+{Month:"7/1/2016",Actual:907061.0862,Predicted:907061.0862,Lower:-31694.5938,Upper:31694.594,Img:"Down"},
+{Month:"8/1/2016",Actual:null,Predicted:990568.2798,Lower:-31694.5938,Upper:31694.594,Img:"Equal"},
+{Month:"9/1/2016",Actual:null,Predicted:1042326.563,Lower:-31694.5938,Upper:31694.594,Img:"Up"}];
+
+            
+
+
+
+
+    // function updateData() {
+    
+            // d3.csv("data10.csv", function(error, data) { 
+                data.map(function(d) { return d['Predicted']= +d['Predicted']; }); 
+                data.map(function(d) { return d['Upper']= +d['Upper']; }); 
+                data.map(function(d) { return d['Lower']= +d['Lower']; }); 
+              
+                data.forEach(function(d) {
+                    d.Month = new Date(d.Month); //console.log(d.Month);console.log(d.Predicted);
+      
+                });
+
+                  console.log(data);
+                var max1 = d3.max(data, function(d) { return d.Predicted; }) + 30000;
+                var max2 = d3.max(data, function(d) { return d.Predicted; }) + 55000;
+
+                x.domain([
+                    d3.min(data, function(d) { return d.Month; }),
+                    d3.max(data, function(d) { return d.Month; })
+                ]); //console.log(d3.max(data, function(d) { return d.Month; }));
+                // }
+                y.domain([
+                    // d3.min(data, function(d) {
+                    //     // var min = Math.min(d["Lower"]);
+                    //     return Math.min(Number(d["Lower"]));
+                    // }),
+                    0,
+                    d3.max(data, function(d) {
+                        // var max = Math.max(d["Predicted"]);
+                        return Math.max(Number(d["Upper"]), max2+10000);
+                    })
+                ]);
+
+                svg.datum(data);
+                // svg.data(data).enter();
+
+                // filter data into two parts
+                var data1 = data.filter(function (d) {return d.Lower == 0;})
+                var data2 = data.filter(function (d) {return d.Lower != 0;})
+
+                var dashBetweenX=[];
+                dashBetweenX.push(data1[data1.length-1].Month);
+                for (var i = 0;i<data2.length;i++){
+                    dashBetweenX.push(data2[i].Month);
+                }
+                console.log(dashBetweenX);
+                // console.log( x(dashBetweenX[dashBetweenX.length-1]));
+                //Add bottom triangles
+                // For Extent of Actuals
+                svg.append("path")
+                .attr('fill',"#346195")
+                // .attr('stroke','#346195')
+                .attr('stroke-width',1)
+                .attr("d", function() {
+                  var d = "M" + x(dashBetweenX[0]) + "," + (height+5);
+                  d += " " + "L"+(x(dashBetweenX[0])-4.5) + "," + (height+11);
+                  d += " " + "L"+(x(dashBetweenX[0])+4.5) + "," + (height+11);
+                  d += " " + "L"+ x(dashBetweenX[0]) + "," + (height+5);
+                  return d;
+                });
+
+                // For Period of Performance
+                svg.append("path")
+                .attr('fill',"#9B9B9B")
+                // .attr('stroke','grey')
+                // .attr('stroke-width',1)
+                .attr("d", function() {
+                  var d = "M" + x(dashBetweenX[dashBetweenX.length-1]) + "," + (height+5);
+                  d += " " + "L"+(x(dashBetweenX[dashBetweenX.length-1])-4.5) + "," + (height+11);
+                  d += " " + "L"+(x(dashBetweenX[dashBetweenX.length-1])+4.5) + "," + (height+11);
+                  d += " " + "L"+ x(dashBetweenX[dashBetweenX.length-1]) + "," + (height+5);
+                  return d;
+                });
+
+                // Add the scatterplot
+                svg.selectAll("dot")
+                    .data(data)
+                  .enter().append("circle")
+                    .attr("r", 2.5)
+                    .attr("fill", "#346195")
+                    .attr("cx", function(d) { return x(d.Month); })
+                    .attr("cy", function(d) { return y(d.Predicted); });
+
+
+                // Add bottom text
+                svg.append("text")
+                    .attr("transform", function(d) {
+                        return "translate(" + (x(dashBetweenX[0])-30) + "," + (height + 25) + ")"; })
+                    .text("Point 1 OF")
+                    .style("font-size", "9px")
+                    .style("fill", "#3146195")
+                    .style('font-family', "Roboto");  
+
+                svg.append("text")
+                    .attr("transform", function(d) {
+                        return "translate(" + (x(dashBetweenX[0])-20) + "," + (height + 38) + ")"; })
+                    .text("X Axis")
+                    .style("font-size", "9px")
+                    .style("fill", "#3146195")
+                    .style("font-family", "Roboto");  
+
+                svg.append("text")
+                    .attr("transform", function(d) {
+                    return "translate(" + (x(dashBetweenX[dashBetweenX.length-1])-30) + "," + (height + 25) + ")"; })
+                    .text("Point 2 OF")
+                    .style("font-size", "9px")
+                    .style("fill", "#9B9B9B")
+                    .style('font-family', "Roboto");   
+
+                svg.append("text")
+                    .attr("transform", function(d) {
+                    return "translate(" + (x(dashBetweenX[dashBetweenX.length-1])-20) + "," + (height + 38) + ")"; })
+                    .text("X axis")
+                    .style("font-size", "9px")
+                    .style("fill", "#9B9B9B")
+                    .style("font-family", "Roboto"); 
+                // X axis
+                svg.append("g")
+                    .attr({
+                        "class": "x axis",
+                        "transform": "translate(0," + height + ")"
+                    })
+                    .call(xAxis);
+
+                // Y axis
+                svg.append("g")
+                    .attr("class", "y axis")
+                    .style("fill", "none")
+                    .style("stroke", "#C7C7C7")
+                    .style("stroke-width", "1px")
+                    .style("shape-rendering", "crispEdges")
+                    .call(yAxis);
+
+                // add back x axis
+                svg.append("svg:line")
+                        .attr("x1", 0)
+                        .attr("x2", width + 20)
+                        .attr("y1", height-1)
+                        .attr("y2", height-1)
+                        .style("stroke", "#C7C7C7")
+                        .style("fill", "none")
+                        .style("shape-rendering", "crispEdges")
+                        // .style("stroke-dasharray", "10,10")
+                        .style('stroke-width', "1px");
+
+                svg.selectAll('.axis line')
+                .style("stroke", "#D8D8D8")
+                .style("stroke-opacity", "1")
+                .style("stroke-width", "1px")
+                .style("shape-rendering", "crispEdges");
+    
+                
+
+                var p = svg.append("path")
+                           .datum(data)
+                           .attr("class", "Line")
+                           .style("fill", "none")
+                           .style("stroke", "#346195")
+                           .style("stroke-width", "1px")
+                           .attr("d", lineLeft);
+                var path = p.node();
+                var totalLen = path.getTotalLength();
+                // find the corresponding line lengths
+                var dashBetweenL = dashBetweenX.map(function(d,i){
+                  
+                  var beginning = 0,
+                      end = totalLen,
+                      target = null,
+                      d = x(d);
+                  
+                  // find the line lengths the correspond to our X values
+                  // stolen from @duopixel from http://bl.ocks.org/duopixel/3824661
+                  while (true){
+                    target = Math.floor((beginning + end) / 2);
+                    pos = path.getPointAtLength(target);
+                    if ((target === end || target === beginning) && pos.x !== d) {
+                        break;
+                    }
+                    if (pos.x > d) end = target;
+                    else if (pos.x < d) beginning = target;
+                    else break; //position found
+                  }
+                  
+                  return target;
+                })
+                // console.log(dashBetweenL);
+                
+                // draw the dashes
+                var sd =  dashBetweenL[0],
+                    dp = dashBetweenL[0];
+                while (dp < dashBetweenL[dashBetweenL.length-1]){
+                  dp += 4;
+                  sd += ", 4";
+                }
+                sd += ", " + (totalLen - dashBetweenL[1]);
+                p.attr("stroke-dasharray", sd);
+                
+
+                    
+                // Add two horizontal lines
+
+                //Budget line
+                svg.append("svg:line")
+                        .attr("x1", 0)
+                        .attr("x2", width+20)
+                        .attr("y1", y(max1))
+                        .attr("y2", y(max1))
+                        .style("stroke", "#AFAFAF")
+                        .style("stroke-dasharray", "10,10")
+                        .style('stroke-width', 1);
+                svg.append("text")
+                        .attr("transform", "translate(" + (-70) + "," + (y(max1)+ 6)+")")
+                        .text("Horizontal 2")
+                        .style("font-size", "9px")
+                        .style("font-family", "Roboto");
+                // Funded line
+                svg.append("svg:line")
+                        .attr("x1", 0)
+                        .attr("x2", width+20)
+                        .attr("y1", y(max2))
+                        .attr("y2", y(max2))
+                        .style("stroke", "#FCD9A0")
+                        .style("stroke-dasharray", "12,4")
+                        .style('stroke-width', 1);
+                svg.append("text")
+                        .attr("transform", "translate(" + (-70) + "," + (y(max2)+ 4)+")")
+                        .text("Horizontal 1")
+                        .style("font-size", "9px")
+                        .style("font-family", "Roboto");
+                //add confidence interval
+                svg.append("path")
+                    .attr({
+                        "class": "area-confidence",
+                        "fill": "#818181",
+                        "opacity": 0.3,
+                        "d": confidenceAreaLeft
+                    });
+
+                // Method #2
+        
+    var mouseG = svg.append("g")
+        .attr("class", "mouse-over-effects");
+
+      mouseG.append("path") // this is the black vertical line to follow mouse
+        .attr("class", "mouse-line")
+        .style("stroke", "#346195")
+        .style("stroke-width", "1px")
+        .attr("d", function() {
+              var d = "M" + x(dashBetweenX[0]) + "," + height;
+              d += " " + x(dashBetweenX[0]) + "," + 0;
+              return d;
+            });
+
+      mouseG.append("rect")
+            .attr("class", "rectangle")
+            .attr("height", height-1)
+            .style("fill", "white")
+            .style("opacity", 0.7);
+
+     mouseG.append('path')
+                .attr('class', 'mouse-triangle')
+                .attr('fill',"#346195")
+                .attr('stroke-width',1)
+                .attr("d", function() {
+                  var d = "M" + x(dashBetweenX[0]) + "," + (-5);
+                  d += " " + "L"+(x(dashBetweenX[0])-4.5) + "," + (-11);
+                  d += " " + "L"+(x(dashBetweenX[0])+4.5) + "," + (-11);
+                  d += " " + "L"+ x(dashBetweenX[0]) + "," + (-5);
+                  return d;
+                });
+
+     mouseG.append('text')
+            .attr("class", "mouse-text")
+            .attr("transform", function() {
+              var value = "translate(" +(x(dashBetweenX[0]) )+ "," + (-25)+")";
+              
+              return value;
+            })
+            .text(function() {var format = d3.time.format("%B %d"); a = format(dashBetweenX[0]); var b=a.split(" ")[0]; return b.toUpperCase().trim();})
+            .attr( 'dy', '.71em' )
+            .style( 'text-anchor', 'middle' )
+            .style("fill", "#346195")
+            .style("font-size", "9px")
+            .style("font-family", "Roboto");
+            
+      // var lines = document.getElementsByClassName('Line');
+      var lines = document.querySelectorAll('.Line, .area-confidence'); console.log(lines);
+      // var area = document.getElementsByClassName('area-confidence'); console.log(area);
+      // lines.item[1]=area.item[0]; console.log(lines);
+
+
+      var temp = {name:"Predicted",values:[]}; var value=[];
+      for (i=0;i<data.length;i++) {
+        value.push({Month:data[i].Month, Value:data[i].Predicted});
+      }
+      temp.value = value; 
+
+      var temp1 = {name:"Lower",values:[]}; var value1=[];
+      for (i=0;i<data.length;i++) {
+        value1.push({Month:data[i].Month, Value:data[i].Lower+data[i].Predicted});
+      }
+      temp1.value = value1; 
+
+      var temp2 = {name:"Upper",values:[]}; var value2=[];
+      for (i=0;i<data.length;i++) {
+        value2.push({Month:data[i].Month, Value:data[i].Upper+data[i].Predicted});
+      }
+      temp2.value = value2; //console.log([temp, temp1, temp2]);
+
+      var mousePerLine = mouseG.selectAll('.mouse-per-line')
+        .data([temp])
+        .enter()
+        .append("g")
+        .attr("class", "mouse-per-line");
+
+      mousePerLine.append("circle")
+        .attr("r", 5)
+        .style("stroke", "white")
+        .style("fill", "#346195")
+        // .style("stroke-width", "1.5px")
+        .style("opacity", "0");
+
+      mousePerLine.append("text").attr("id", "tspan").append("tspan").attr("id","first");
+      mousePerLine.select("text").append("tspan").attr("id","second"); 
+      var tspan = d3.select("#tspan"); console.log(tspan);
+
+
+// add svg image
+      mousePerLine
+                .append("svg:image")
+                .attr("class", "img");
+                
+
+// add svg image
+
+      mouseG.append('svg:rect') // append a rect to catch mouse movements on canvas
+        .attr('width', width-20-22) // can't catch mouse events on a g element
+        .attr('height', height)
+        .attr("x", 20)// leave first blank part
+        .attr('fill', 'none')
+        .attr('pointer-events', 'all')
+        .on('mouseout', function() { // on mouse out hide line, circles and text
+          d3.select(".mouse-line")
+            .style("opacity", "0");
+          d3.select(".mouse-triangle")
+            .style("opacity", "0");
+          d3.selectAll(".mouse-text")
+            .style("opacity", "0");
+          d3.selectAll(".mouse-per-line circle")
+            .style("opacity", "0");
+          d3.selectAll(".mouse-per-line text")
+            .style("opacity", "0");
+          // d3.selectAll(".mouse-per-line")
+          //   .style("opacity", "0");
+          d3.selectAll(".img")
+            .style("opacity", "0");
+        })
+        .on('mouseover', function() { // on mouse in show line, circles and text
+          d3.select(".mouse-line")
+            .style("opacity", "1");
+          d3.select(".mouse-triangle")
+            .style("opacity", "1");
+          d3.select(".mouse-text")
+            .style("opacity", "1"); 
+          d3.selectAll(".mouse-per-line circle")
+            .style("opacity", "1");
+          d3.selectAll(".mouse-per-line text")
+            .style("opacity", "1");
+          // d3.selectAll(".mouse-per-line")
+          //   .style("opacity", "1");
+          d3.selectAll(".img")
+            .style("opacity", "1");
+        })
+        .on('mousemove', function() { // mouse moving over canvas
+          var mouse = d3.mouse(this); //console.log("mouse[0]", mouse[0]);
+          d3.select(".mouse-line")
+            .attr("d", function() {
+              var d = "M" + mouse[0] + "," + height;
+              d += " " + mouse[0] + "," + 0;
+              return d;
+            });
+
+        d3.select(".rectangle")
+            .attr("x", mouse[0]+1)
+            .attr("y", 0)
+            .attr('width', width+margin.right - mouse[0]);
+
+         d3.select(".mouse-text")
+            .attr("transform", function() {
+              var value = "translate(" +(mouse[0] )+ "," + (-25)+")";
+              
+              return value;
+            })
+            .text(function() {var format = d3.time.format("%B %d"); a = format((x.invert(mouse[0]))); var b=a.split(" ")[0]; return b.toUpperCase().trim();})
+            .attr( 'dy', '.71em' )
+            .style( 'text-anchor', 'middle' )
+            .style("fill", "#346195")
+            .style("font-size", "9px")
+            .style("font-family", "Roboto");
+
+
+         d3.select(".mouse-triangle")
+            .attr("d", function() {
+              var d = "M" + mouse[0] + "," + (-5);
+              d += " " + "L"+(mouse[0]-4.5) + "," + (-11);
+              d += " " + "L"+(mouse[0]+4.5) + "," + (-11);
+              d += " " + "L"+ mouse[0] + "," + (-5);
+              return d;
+            });
+
+          d3.selectAll(".mouse-per-line")
+            .attr("transform", function(d) {
+             // for (i=0;i<2;i++) {
+              // console.log(lines.item(0), lines.item(1));
+
+              var beginning0 = 0,
+                end0 = lines.item(0).getTotalLength(),
+                target0 = null; //console.log(i);
+
+              while (true) {
+                target0 = Math.floor((beginning0 + end0) / 2);
+                pos0 = lines.item(0).getPointAtLength(target0);
+                if ((target0 === end0 || target0 === beginning0) && pos0.x !== mouse[0]) {
+                  break;
+                }
+                if (pos0.x > mouse[0]) beginning0 = target0;
+                else if (pos0.x < mouse[0]) end0 = target0;
+                else break;
+              }
+
+
+              var beginning1 = 0,
+                end1 = lines.item(1).getTotalLength(),
+                target1 = null; //console.log(i);
+
+              while (true) {
+                target1 = Math.floor((beginning1 + end1) / 2);
+                pos1 = lines.item(1).getPointAtLength(target1);
+                if ((target1 === end1 || target1 === beginning1) && pos1.x !== mouse[0]) {
+                  break;
+                }
+                if (pos1.x > mouse[0]) beginning1 = target1;
+                else if (pos1.x < mouse[0]) end1 = target1;
+                else break;
+              }
+
+              var plusminus = "";
+              // console.log(d3.svg.axis().scale(mouse[0]));
+              
+              if (mouse[0]>= x(dashBetweenX[0])) 
+                //plusminus = "+-" + (y.invert(pos1.y+1)- y.invert(pos0.y)).toFixed(2);
+                plusminus =" " + '\xB1' + " " + "$" +  d3.format(",.0f")((data[data.length-1].Upper).toFixed(0));//
+              console.log(x(dashBetweenX[0]), plusminus);
+
+
+            d3.select(this).select('text').select("#first")
+            .text("$" +  d3.format(",.0f")(y.invert(pos0.y).toFixed(0)))
+                .attr("x", "20")
+                .attr("y", "15")
+                .attr("font-family", "Avenir")
+                .style("fill", "#9B9B9B")
+                .style( 'font-size', "14px" );
+
+            d3.select(this).select('text').select("#second")
+                .text(plusminus)
+                .attr("x", "20")
+                .attr("y", "30")
+                .attr("font-family", "Avenir")
+                .style("fill", "#9B9B9B")
+                .style( 'font-size', "14px" );
+
+              return "translate(" + mouse[0] + "," + pos0.y + ")";
+          // }
+            });
+
+        // to show up or down image
+        var bisectDate = d3.bisector(function(d) { return d.Month; }).left;
+        var x0 = x.invert(d3.mouse(this)[0]),
+        i = bisectDate(data, x0, 1),
+        d0 = data[i - 1],
+        d1 = data[i],
+        d = x0 - d0.date > d1.date - x0 ? d1 : d0;
+        // console.log(i);
+
+
+         d3.select(".img")
+            .attr("xlink:href", "../assets/img/projects/" + d.Img+".svg")
+                .attr("x", "90")
+                .attr("y", "0")
+                .attr("width", "20")
+                .attr("height", "20");
+
+        // } else {d3.select(".img").exit();}
+
+        });
+
+
+
+
+        </script>
+       
+    </body>
+</html>
